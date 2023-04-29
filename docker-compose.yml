@@ -1,0 +1,17 @@
+version: "3.9" # optional since v1.27.0
+services:
+  soundSetApi_db_dev:
+    image: postgres:14-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_DB=db
+      - POSTGRES_PASSWORD=4134
+    ports:
+      - 21822:5432
+    volumes:
+      - vol:/var/lib/postgresql/data
+
+volumes:
+  vol:
+    driver: local
