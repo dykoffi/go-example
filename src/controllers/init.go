@@ -10,6 +10,11 @@ import (
 
 func New(app *fiber.App) {
 
+	app.Get("/", func(c *fiber.Ctx) error {
+		c.SendStatus(302)
+		return c.Redirect("/api/v1")
+	})
+
 	api := app.Group("/api").Group("/v1")
 
 	home.Routes(api)
