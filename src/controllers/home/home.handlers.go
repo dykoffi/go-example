@@ -1,9 +1,6 @@
 package home
 
 import (
-	"os"
-	"path"
-
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -24,6 +21,5 @@ func getApiInfo(c *fiber.Ctx) error {
 
 func getDocs(c *fiber.Ctx) error {
 	c.Set("Content-Type", "text/html")
-	cwd, _ := os.Getwd()
-	return c.SendFile(path.Join(cwd, "public", "rapidoc.html"))
+	return c.SendFile("public/rapidoc.html")
 }

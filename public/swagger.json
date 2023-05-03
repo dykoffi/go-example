@@ -64,6 +64,16 @@
                     }
                 }
             }
+        },
+        "/processGtfs": {
+            "get": {
+                "description": "Route which permit to process a gtfs file that you have uploaded",
+                "tags": [
+                    "file"
+                ],
+                "summary": "Process GTFS File",
+                "responses": {}
+            }
         }
     },
     "definitions": {

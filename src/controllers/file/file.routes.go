@@ -6,4 +6,5 @@ import (
 
 func Routes(app fiber.Router) {
 	app.Post("/file/upload", updloadFile)
+	app.Post("/file/processGtfs", updloadFile)
 }

@@ -1,5 +1,7 @@
 package main
 
+//go:generate go run .
+
 import (
 	"lab/exp1/src/controllers"
 	"log"
@@ -27,11 +29,10 @@ func main() {
 
 	app.Use(compress.New())
 	app.Use(cors.New())
-	// app.Use(csrf.New())
-	app.Use(favicon.New(favicon.Config{URL: "/public/favicon.ico"}))
+	app.Use(favicon.New(favicon.Config{File: "./public/favicon.ico"}))
 	app.Use(logger.New())
 
 	controllers.New(app)
 
-	log.Fatal(app.Listen(":8888"))
+	log.Fatal(app.Listen(":8080"))
 }
