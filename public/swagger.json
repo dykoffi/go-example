@@ -33,47 +33,6 @@
                     }
                 }
             }
-        },
-        "/file/upload": {
-            "post": {
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "file"
-                ],
-                "summary": "Upload file",
-                "parameters": [
-                    {
-                        "type": "file",
-                        "description": "File to upload",
-                        "name": "fichier",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/home.HomeRes"
-                        }
-                    }
-                }
-            }
-        },
-        "/processGtfs": {
-            "get": {
-                "description": "Route which permit to process a gtfs file that you have uploaded",
-                "tags": [
-                    "file"
-                ],
-                "summary": "Process GTFS File",
-                "responses": {}
-            }
         }
     },
     "definitions": {
