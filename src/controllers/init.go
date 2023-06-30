@@ -15,9 +15,9 @@ func New(app *fiber.App) {
 	home.Routes(api)
 
 	// For UI services
-	app.Static("/", "dist")
-	app.Get("/*", func(c *fiber.Ctx) error {
-		return c.SendFile("dist/index.html")
-	})
+	// app.Static("/", "dist")
+	// app.Get("/*", func(c *fiber.Ctx) error {
+	// 	return c.SendFile("dist/index.html")
+	// })
 
 }
