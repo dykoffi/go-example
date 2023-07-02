@@ -15,6 +15,6 @@ var (
 )
 
 func Keycloak(ctx *fiber.Ctx) error {
-	fmt.Println("ok ok")
+	fmt.Println(ctx.ClientHelloInfo())
 	return ctx.Next()
 }

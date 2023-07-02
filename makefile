@@ -1,10 +1,18 @@
 all: dev
-dev: doc db-start
+dev: db-start
 	ENV=development \
+\
 	KEYCLOAK_HOST=http://localhost:8180 \
 	KEYCLOAK_REALM=test-go \
 	KEYCLOAK_CLIENT_ID=go \
 	KEYCLOAK_CLIENT_SECRET=8LfYm6ShIdKsfTg7UYBtl0uRPQbNlJ08 \
+\
+	POSTGRES_DB=db \
+	POSTGRES_HOST=localhost \
+	POSTGRES_PORT=21822 \
+	POSTGRES_USER=user \
+	POSTGRES_PASSWORD=4134 \
+\
 	air
 
 build:

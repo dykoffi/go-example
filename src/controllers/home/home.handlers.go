@@ -2,6 +2,7 @@ package home
 
 import (
 	"fmt"
+	"lab/exp1/src/auth"
 	"lab/exp1/src/configs"
 	"lab/exp1/src/model"
 
@@ -29,10 +30,10 @@ func getDocs(c *fiber.Ctx) error {
 }
 
 func addUser(c *fiber.Ctx) error {
-	db := configs.Db().Create(&model.User{Mail: "koffiedy@gmail.com", Age: 15})
+	db := configs.Db().Create(&model.User{Mail: "koffiedy@gmail.com", Age: 16})
 
 	if err := db.Error; err != nil {
-		return c.Status(400).JSON(map[string]string{"err": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(map[string]string{"err": err.Error()})
 	}
 
 	return c.JSON(map[string]string{"message": "User added successfully"})
@@ -49,4 +50,42 @@ func listUsers(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(listUser)
 
+}
+
+func createCookie(ctx *fiber.Ctx) error {
+
+	kc := auth.KC
+
+	token, err := auth.GetBearerToken(ctx.Get("Authorization"))
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	_, tokenClaims, error := kc.Gocloak.DecodeAccessToken(ctx.Context(), token, kc.Realm)
+
+	if error != nil {
+		return ctx.JSON(map[string]string{"error": error.Error()})
+	}
+
+	fmt.Println(tokenClaims.Valid())
+
+	return ctx.JSON(tokenClaims)
+
+	// ctx.Cookie(&fiber.Cookie{
+	// 	Name:    "test",
+	// 	Value:   "curl",
+	// 	Expires: time.Now().Add(30 * time.Minute),
+	// })
+
+	// return ctx.JSON(map[string]string{"message": "Cookie creation"})
+}
+
+func getCookie(ctx *fiber.Ctx) error {
+	return ctx.JSON(map[string]string{"message": ctx.Cookies("test")})
+}
+
+func clearCookie(ctx *fiber.Ctx) error {
+	ctx.ClearCookie()
+	return ctx.JSON(map[string]string{"message": "Cookie cleaning"})
 }

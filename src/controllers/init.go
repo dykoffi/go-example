@@ -8,8 +8,6 @@ import (
 
 func New(app *fiber.App) {
 
-	// permissions := rptResult.Permissions
-
 	api := app.Group("/api").Group("/v1")
 
 	home.Routes(api)
