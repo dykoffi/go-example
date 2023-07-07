@@ -23,4 +23,4 @@ func newKeycloak() *keycloak {
 }
 
 // Returns the keycloak client
-var KC = newKeycloak()
+var Kc = newKeycloak()

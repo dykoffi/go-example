@@ -3,7 +3,6 @@ package configs
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -11,9 +10,7 @@ import (
 
 func Db() *gorm.DB {
 	// Ouvre une connexion à la base de données Postgres
-	var dsn strings.Builder
-
-	fmt.Fprintf(&dsn,
+	var dsn = fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		os.Getenv("POSTGRES_HOST"),
 		os.Getenv("POSTGRES_USER"),
@@ -22,7 +19,7 @@ func Db() *gorm.DB {
 		os.Getenv("POSTGRES_PORT"),
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn.String()), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
