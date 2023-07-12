@@ -3,9 +3,9 @@ dev: db-start
 	ENV=development \
 \
 	KEYCLOAK_HOST=http://localhost:8180 \
-	KEYCLOAK_REALM=test-go \
-	KEYCLOAK_CLIENT_ID=go \
-	KEYCLOAK_CLIENT_SECRET=8LfYm6ShIdKsfTg7UYBtl0uRPQbNlJ08 \
+	KEYCLOAK_REALM=exp1 \
+	KEYCLOAK_CLIENT_ID=go-backend \
+	KEYCLOAK_CLIENT_SECRET=wt6QJFkhs4LyxOLYLbPZWC06UzCLXlSe \
 \
 	POSTGRES_DB=db \
 	POSTGRES_HOST=localhost \

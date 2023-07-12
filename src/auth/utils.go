@@ -10,9 +10,10 @@ import (
 )
 
 type TimeInterval struct {
-	StartTime  string // format YYYY-MM-DD HH:MM:SS
-	ExpireTime string // format YYYY-MM-DD HH:MM:SS
-	Repeat     bool
+	StartTime       string // format YYYY-MM-DD HH:MM:SS
+	ExpireTime      string // format YYYY-MM-DD HH:MM:SS
+	Repeat          bool
+	RepeatFrequency string // hour, day, month
 }
 
 type Policy struct {
@@ -63,7 +64,7 @@ func enforcePolicies(token jwt.MapClaims, policy Policy, opts PolicyOpts) (bool,
 	decisionStrategy := strings.ToLower(opts.DecisionStrategy)
 
 	if decisionStrategy != "affirmative" && decisionStrategy != "unanymous" {
-		opts.DecisionStrategy = "unanymous"
+		decisionStrategy = "unanymous"
 	}
 
 	logic := opts.Logic
@@ -134,13 +135,36 @@ func applyTimePolicy(times TimeInterval) bool {
 
 		startTime, err1 := time.Parse(timeLayout, times.StartTime)
 		expireTime, err2 := time.Parse(timeLayout, times.ExpireTime)
+		nowTime := time.Now()
 
 		if err1 != nil || err2 != nil {
 			fmt.Println(err1, err2)
 			return false
 		}
 
-		if time.Now().After(startTime) && time.Now().Before(expireTime) {
+		if times.Repeat {
+
+			repeatFrequency := times.RepeatFrequency
+
+			if repeatFrequency != "daily" && repeatFrequency != "weekly" && repeatFrequency != "monthly" {
+				repeatFrequency = "daily"
+			}
+
+			if repeatFrequency == "daily" {
+
+				hour, min, sec := nowTime.Clock()
+				year, month, day := startTime.Date()
+				nowTime, _ = time.Parse(timeLayout, fmt.Sprintf("%v-%v-%v %v:%v:%v", year, month, day, hour, min, sec))
+
+			} else if repeatFrequency == "weekly" {
+
+			} else if repeatFrequency == "monthly" {
+
+			}
+
+		}
+
+		if nowTime.After(startTime) && nowTime.Before(expireTime) {
 			return true
 		}
 	}
