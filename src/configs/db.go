@@ -9,7 +9,7 @@ import (
 )
 
 func Db() *gorm.DB {
-	// Ouvre une connexion à la base de données Postgres
+	// OPen databse connection
 	var dsn = fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		os.Getenv("POSTGRES_HOST"),

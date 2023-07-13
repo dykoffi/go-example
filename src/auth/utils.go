@@ -135,7 +135,9 @@ func applyTimePolicy(times TimeInterval) bool {
 
 		startTime, err1 := time.Parse(timeLayout, times.StartTime)
 		expireTime, err2 := time.Parse(timeLayout, times.ExpireTime)
+
 		nowTime := time.Now()
+		var err error
 
 		if err1 != nil || err2 != nil {
 			fmt.Println(err1, err2)
@@ -154,15 +156,33 @@ func applyTimePolicy(times TimeInterval) bool {
 
 				hour, min, sec := nowTime.Clock()
 				year, month, day := startTime.Date()
-				nowTime, _ = time.Parse(timeLayout, fmt.Sprintf("%v-%v-%v %v:%v:%v", year, month, day, hour, min, sec))
+				nowTime, err = time.Parse(timeLayout, fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, sec))
+
+				if err != nil {
+					fmt.Println(err)
+					return false
+				}
 
 			} else if repeatFrequency == "weekly" {
 
 			} else if repeatFrequency == "monthly" {
 
+				hour, min, sec := nowTime.Clock()
+				_, _, day := nowTime.Date()
+				year, month, _ := startTime.Date()
+
+				nowTime, err = time.Parse(timeLayout, fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, sec))
+
+				if err != nil {
+					fmt.Println(err)
+					return false
+				}
+
 			}
 
 		}
+
+		fmt.Println(nowTime)
 
 		if nowTime.After(startTime) && nowTime.Before(expireTime) {
 			return true
