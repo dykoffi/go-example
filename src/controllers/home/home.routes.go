@@ -13,7 +13,7 @@ func Routes(api fiber.Router) {
 	api.Get("/getUser", listUsers)
 
 	//cookies
-	api.Get("/postCookie", auth.Protect(auth.IsAuthenticatedUserAtNight, auth.PolicyOpts{Logic: true}), createCookie)
+	api.Get("/postCookie", auth.Protect(auth.HasRoleCreateCookies, auth.PolicyOpts{Logic: true}), createCookie)
 	api.Get("/getCookie", getCookie)
 	api.Get("/delCookie", clearCookie)
 }

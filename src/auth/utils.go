@@ -2,6 +2,8 @@ package auth
 
 import (
 	"fmt"
+	"lab/exp1/src/utils"
+	"os"
 	"strings"
 	"time"
 
@@ -44,12 +46,23 @@ func GetBearerToken(authorization string) (string, error) {
 
 func enforcePolicies(token jwt.MapClaims, policy Policy, opts PolicyOpts) (bool, error) {
 
-	userID := fmt.Sprintf("%v", token["sub"])
+	keycloak_client_id := os.Getenv("KEYCLOAK_CLIENT_ID")
+	userID := token["sub"].(string)
+	userRoles := []string{}
 	var err error
 
-	roles := strings.Join(policy.Roles, "")
+	// GEt isers roles via client id
+	if resource_access, exist := token["resource_access"].(map[string]interface{}); exist {
+		if client, exist := resource_access[keycloak_client_id].(map[string]interface{}); exist {
+			if roles, exist := client["roles"].([]interface{}); exist {
+				userRoles = utils.ConvertSlice(roles)
+			}
+		}
+	}
 
-	rolePolicyResult := applyRolePolicy([]string{}, roles)
+	fmt.Println(userRoles)
+
+	rolePolicyResult := applyRolePolicy(userRoles, policy.Roles)
 	userPolicyResult := applyUserPolicy(userID, policy.Users)
 	timePolicyResult := applyTimePolicy(policy.Times)
 
@@ -192,15 +205,17 @@ func applyTimePolicy(times TimeInterval) bool {
 	return false
 }
 
-func applyRolePolicy(userRole []string, permittedRoles string) bool {
+func applyRolePolicy(userRoles []string, permittedRoles []string) bool {
 
 	if len(permittedRoles) == 0 {
 		return true
 	}
 
-	for _, role := range userRole {
-		if strings.Contains(permittedRoles, role) {
-			return true
+	for _, permitted := range permittedRoles {
+		for _, role := range userRoles {
+			if role == permitted {
+				return true
+			}
 		}
 	}
 
