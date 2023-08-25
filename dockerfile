@@ -10,8 +10,8 @@ COPY app /web
 WORKDIR /web
 RUN chmod +x app
 
-ENV port=8080
+ENV PORT=8080
 
-EXPOSE ${port}
+EXPOSE ${PORT}
 
 CMD ["./app"]

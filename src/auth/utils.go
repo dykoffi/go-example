@@ -15,7 +15,7 @@ type TimeInterval struct {
 	StartTime       string // format YYYY-MM-DD HH:MM:SS
 	ExpireTime      string // format YYYY-MM-DD HH:MM:SS
 	Repeat          bool
-	RepeatFrequency string // hour, day, month
+	RepeatFrequency string // daily, weekly, monthly
 }
 
 type Policy struct {
@@ -59,8 +59,6 @@ func enforcePolicies(token jwt.MapClaims, policy Policy, opts PolicyOpts) (bool,
 			}
 		}
 	}
-
-	fmt.Println(userRoles)
 
 	rolePolicyResult := applyRolePolicy(userRoles, policy.Roles)
 	userPolicyResult := applyUserPolicy(userID, policy.Users)
@@ -122,7 +120,7 @@ func applyTimePolicy(times TimeInterval) bool {
 			return false
 		}
 
-		if time.Now().After(expireTime) {
+		if time.Now().Before(expireTime) {
 			return true
 		}
 	}
@@ -159,7 +157,7 @@ func applyTimePolicy(times TimeInterval) bool {
 
 		if times.Repeat {
 
-			repeatFrequency := times.RepeatFrequency
+			repeatFrequency := strings.ToLower(times.RepeatFrequency)
 
 			if repeatFrequency != "daily" && repeatFrequency != "weekly" && repeatFrequency != "monthly" {
 				repeatFrequency = "daily"
@@ -194,8 +192,6 @@ func applyTimePolicy(times TimeInterval) bool {
 			}
 
 		}
-
-		fmt.Println(nowTime)
 
 		if nowTime.After(startTime) && nowTime.Before(expireTime) {
 			return true
@@ -235,7 +231,6 @@ func applyUserPolicy(userId string, permittedIds []string) bool {
 	}
 
 	return false
-
 }
 
 func Protect(policy Policy, opts PolicyOpts) func(*fiber.Ctx) error {
