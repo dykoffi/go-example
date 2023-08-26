@@ -3,7 +3,7 @@ FROM alpine
 RUN apk update
 RUN apk add ca-certificates
 
-COPY ui/dist /web/dist
+# COPY ui/dist /web/dist
 COPY public /web/public
 COPY app /web
 
