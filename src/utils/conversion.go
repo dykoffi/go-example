@@ -1,5 +1,6 @@
 package utils
 
+// Converitr un slice de interface{} en []string
 func ConvertSlice(slice []interface{}) []string {
 	result := make([]string, len(slice))
 	for i, v := range slice {
