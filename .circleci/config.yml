@@ -29,7 +29,24 @@ commands:
       - run:
           name: Install Dependencies
           command: go mod download
-  docker_build_and_deploy_cmd:
+  install_or_update_testers_and_checkers_cmd:
+    steps:
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run: go install honnef.co/go/tools/cmd/staticcheck@latest
+      - run: go install honnef.co/go/tools/cmd/staticcheck@latest
+  run_tests_cmd:
+    steps:
+      - run: mkdir -p /tmp/test-reports
+      - run: govulncheck ./... > /tmp/test-reports/vulnerabilities.txt
+      - run: staticcheck ./... > /tmp/test-reports/performances.txt
+      - run: go test -bench ./tests > /tmp/test-reports/benchmarks.txt
+      - run: gotestsum --junitfile /tmp/test-reports/unit-tests.xml -- ./tests
+      - store_test_results:
+          path: /tmp/test-reports
+      - store_artifacts:
+          path: /tmp/test-reports
+
+  build_and_deploy_docker_image_cmd:
     steps:
       - run:
           name: Log in to my personnal docker
@@ -45,18 +62,15 @@ jobs:
   test:
     executor: docker-executor
     working_directory: ~/repo
+    parallelism: 4
     steps:
       - checkout
       - restore_cache_cmd
       - install_deps_cmd
       - save_cache_cmd
-      - run:
-          name: Run tests
-          command: |
-            mkdir -p /tmp/test-reports
-            gotestsum --junitfile /tmp/test-reports/unit-tests.xml
-      - store_test_results:
-          path: /tmp/test-reports
+      - install_or_update_testers_and_checkers_cmd
+      - run_tests_cmd
+      
       - run:
           name: Build application
           command: make build
@@ -72,7 +86,7 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - docker_build_and_deploy_cmd
+      - build_and_deploy_docker_image_cmd
 
 workflows:
   sample:
@@ -86,4 +100,3 @@ workflows:
             branches:
               only:
                 - main
-                - release
