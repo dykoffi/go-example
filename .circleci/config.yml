@@ -1,5 +1,17 @@
 version: 2.1
 
+executors:
+  docker-executor:
+    docker:
+      - image: cimg/go:1.21.0
+  machine-executor:
+    environment:
+      DOCKER_USER: dykoffi
+      PROJECT_NAME: go-example
+    machine:
+      image: ubuntu-2004:current
+      docker_layer_caching: true
+
 commands:
   restore_cache_cmd:
     steps:
@@ -17,18 +29,20 @@ commands:
       - run:
           name: Install Dependencies
           command: go mod download
-
-executors:
-  docker-executor:
-    docker:
-      - image: cimg/go:1.21.0
-  machine-executor:
-    machine:
-      image: ubuntu-2004:current
-      docker_layer_caching: true
+  docker_build_and_deploy_cmd:
+    steps:
+      - run:
+          name: Log in to my personnal docker
+          command: docker login -u ${DOCKER_USER} -p ${PERSONAL_DOCKER_TOKEN}
+      - run:
+          name: Build docker image
+          command: docker build -t ${DOCKER_USER}/${PROJECT_NAME}
+      - run:
+          name: Push docker image on dockerhub
+          command: docker push
 
 jobs:
-  build:
+  test:
     executor: docker-executor
     working_directory: ~/repo
     steps:
@@ -36,7 +50,6 @@ jobs:
       - restore_cache_cmd
       - install_deps_cmd
       - save_cache_cmd
-
       - run:
           name: Run tests
           command: |
@@ -44,12 +57,33 @@ jobs:
             gotestsum --junitfile /tmp/test-reports/unit-tests.xml
       - store_test_results:
           path: /tmp/test-reports
-  deploy:
+      - run:
+          name: Build application
+          command: make build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./public
+            - dockerfile
+            - app
+
+  deploy_on_dockerhub:
     executor: machine-executor
     steps:
-      - run: ""
+      - attach_workspace:
+          at: .
+      - docker_build_and_deploy_cmd
 
 workflows:
   sample:
     jobs:
-      - build
+      - test
+      - deploy_on_dockerhub:
+          requires:
+            - test
+          context: Global
+          filters:
+            branches:
+              only:
+                - main
+                - release
