@@ -36,7 +36,7 @@ commands:
           command: docker login -u ${DOCKER_USER} -p ${PERSONAL_DOCKER_TOKEN}
       - run:
           name: Build docker image
-          command: docker build -t ${DOCKER_USER}/${PROJECT_NAME}
+          command: docker build -t ${DOCKER_USER}/${PROJECT_NAME} .
       - run:
           name: Push docker image on dockerhub
           command: docker push
