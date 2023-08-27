@@ -1,5 +1,21 @@
 version: 2.1
 
+executors:
+  docker-executor:
+    environment:
+      CGO_ENABLED: 0
+      GOOS: linux
+      GOARCH: amd64
+    docker:
+      - image: cimg/go:1.21.0
+  machine-executor:
+    environment:
+      DOCKER_USER: dykoffi
+      PROJECT_NAME: go-example
+    machine:
+      image: ubuntu-2004:current
+      docker_layer_caching: true
+
 commands:
   restore_cache_cmd:
     steps:
@@ -14,21 +30,29 @@ commands:
             - "/go/pkg/mod"
   install_deps_cmd:
     steps:
-      - run:
-          name: Install Dependencies
-          command: go mod download
+      - run: go mod download
+  install_or_update_testers_and_checkers_cmd:
+    steps:
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run: go install honnef.co/go/tools/cmd/staticcheck@latest
+      - run: go install honnef.co/go/tools/cmd/staticcheck@latest
+  run_tests_cmd:
+    steps:
+      - run: mkdir -p /tmp/test-reports
+      - run: mkdir -p /tmp/artifacts
+      - run: govulncheck ./... > /tmp/artifacts/vulnerabilities.txt
+      - run: staticcheck ./... > /tmp/artifacts/performances.txt
+      - run: go test -bench . ./tests > /tmp/artifacts/benchmarks.txt
+      - run: gotestsum --junitfile /tmp/test-reports/unit-tests.xml -- ./tests
 
-executors:
-  docker-executor:
-    docker:
-      - image: cimg/go:1.21.0
-  machine-executor:
-    machine:
-      image: ubuntu-2004:current
-      docker_layer_caching: true
+  build_and_deploy_docker_image_cmd:
+    steps:
+      - run: docker login -u ${DOCKER_USER} -p ${PERSONAL_DOCKER_TOKEN}
+      - run: docker build -t ${DOCKER_USER}/${PROJECT_NAME} .
+      - run: docker push ${DOCKER_USER}/${PROJECT_NAME}
 
 jobs:
-  build:
+  test_and_build:
     executor: docker-executor
     working_directory: ~/repo
     steps:
@@ -36,20 +60,37 @@ jobs:
       - restore_cache_cmd
       - install_deps_cmd
       - save_cache_cmd
-
-      - run:
-          name: Run tests
-          command: |
-            mkdir -p /tmp/test-reports
-            gotestsum --junitfile /tmp/test-reports/unit-tests.xml
+      - install_or_update_testers_and_checkers_cmd
+      - run_tests_cmd
       - store_test_results:
           path: /tmp/test-reports
-  deploy:
+      - run: go build -tags netgo -a -v -ldflags='-s' -o /tmp/artifacts/app .
+      - store_artifacts:
+          path: /tmp/artifacts
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./public
+            - dockerfile
+            - app
+
+  deploy_on_dockerhub:
     executor: machine-executor
     steps:
-      - run: ""
+      - attach_workspace:
+          at: .
+      - build_and_deploy_docker_image_cmd
 
 workflows:
   sample:
     jobs:
-      - build
+      - test_and_build:
+          context: Global
+      - deploy_on_dockerhub:
+          requires:
+            - test_and_build
+          context: Global
+          filters:
+            branches:
+              only:
+                - main
