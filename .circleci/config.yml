@@ -39,7 +39,7 @@ commands:
           command: docker build -t ${DOCKER_USER}/${PROJECT_NAME} .
       - run:
           name: Push docker image on dockerhub
-          command: docker push
+          command: docker push ${DOCKER_USER}/${PROJECT_NAME}
 
 jobs:
   test:
