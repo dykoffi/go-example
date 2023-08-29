@@ -1,11 +1,25 @@
 module lab/exp1
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 require (
 	github.com/gofiber/fiber/v2 v2.47.0
 	gorm.io/driver/postgres v1.5.0
 	gorm.io/gorm v1.25.0
+)
+
+require (
+	github.com/dnephin/pflag v1.0.7 // indirect
+	github.com/fatih/color v1.13.0 // indirect
+	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/sync v0.1.0 // indirect
+	golang.org/x/term v0.8.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
+	gotest.tools/gotestsum v1.10.1 // indirect
 )
 
 require (

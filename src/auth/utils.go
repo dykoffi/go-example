@@ -34,10 +34,10 @@ func GetBearerToken(authorization string) (string, error) {
 	tkArray := strings.Split(authorization, " ")
 
 	if strings.ToLower(tkArray[0]) != "bearer" {
-		return "", fmt.Errorf("It is not a Bearer token")
+		return "", fmt.Errorf("it is not a bearer token")
 	} else {
 		if token := tkArray[1]; strings.Trim(token, "") == "" {
-			return "", fmt.Errorf("Token is not present")
+			return "", fmt.Errorf("token is not present")
 		} else {
 			return token, nil
 		}
@@ -105,7 +105,7 @@ func applyTimePolicy(times TimeInterval) bool {
 	timeLayout := "2006-01-02 15:04:05"
 
 	// If any of the times is defined, we consider this policy like not applicable, so return true
-	if strings.Trim(times.StartTime, "") == "" && strings.Trim(times.StartTime, "") == "" {
+	if strings.Trim(times.StartTime, "") == "" && strings.Trim(times.ExpireTime, "") == "" {
 		return true
 	}
 
@@ -142,7 +142,7 @@ func applyTimePolicy(times TimeInterval) bool {
 	}
 
 	// If the both startTime and endTime are defined
-	if strings.Trim(times.StartTime, "") != "" && strings.Trim(times.StartTime, "") != "" {
+	if strings.Trim(times.StartTime, "") != "" && strings.Trim(times.ExpireTime, "") != "" {
 
 		startTime, err1 := time.Parse(timeLayout, times.StartTime)
 		expireTime, err2 := time.Parse(timeLayout, times.ExpireTime)
