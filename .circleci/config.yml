@@ -13,7 +13,7 @@ executors:
       DOCKER_USER: dykoffi
       PROJECT_NAME: go-example
     machine:
-      image: ubuntu-2004:current
+      image: ubuntu-2204:current
       docker_layer_caching: true
 
 commands:
@@ -34,7 +34,6 @@ commands:
   install_or_update_testers_and_checkers_cmd:
     steps:
       - run: go install golang.org/x/vuln/cmd/govulncheck@latest
-      - run: go install honnef.co/go/tools/cmd/staticcheck@latest
       - run: go install honnef.co/go/tools/cmd/staticcheck@latest
   run_tests_cmd:
     steps:
@@ -81,8 +80,13 @@ jobs:
           at: .
       - build_and_deploy_docker_image_cmd
 
+  update_application:
+    executor: machine-executor
+    steps:
+      - run: ssh
+
 workflows:
-  sample:
+  test_deploy_update:
     jobs:
       - test_and_build:
           context: Global
@@ -94,3 +98,7 @@ workflows:
             branches:
               only:
                 - main
+      - update_application:
+          filters:
+            branches:
+              only: main
