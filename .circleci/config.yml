@@ -84,6 +84,7 @@ jobs:
     executor: machine-executor
     steps:
       - run: ssh
+      - run: wget "${NOTIFICATION_URL}?version=${VERSION}&app=${APP}"
 
 workflows:
   test_deploy_update:
@@ -99,6 +100,8 @@ workflows:
               only:
                 - main
       - update_application:
+          requires:
+            - test_and_build
           filters:
             branches:
               only: main
