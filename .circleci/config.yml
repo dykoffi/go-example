@@ -56,7 +56,7 @@ commands:
           -e SONAR_HOST_URL="${SONARQUBE_URL}" \
           -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=${SONARQUBE_PROJECT_KEY}" \
           -e SONAR_TOKEN="${SONARQUBE_PROJECT_SECRET}" \
-          -v "~/project:/usr/src" \
+          -v ".:/usr/src" \
           sonarsource/sonar-scanner-cli 
 
 jobs:
