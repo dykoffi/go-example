@@ -46,14 +46,14 @@ func GetBearerToken(authorization string) (string, error) {
 
 func enforcePolicies(token jwt.MapClaims, policy Policy, opts PolicyOpts) (bool, error) {
 
-	keycloak_client_id := os.Getenv("KEYCLOAK_CLIENT_ID")
+	keycloakClientId := os.Getenv("KEYCLOAK_CLIENT_ID")
 	userID := token["sub"].(string)
 	userRoles := []string{}
 	var err error
 
 	// GEt isers roles via client id
 	if resource_access, exist := token["resource_access"].(map[string]interface{}); exist {
-		if client, exist := resource_access[keycloak_client_id].(map[string]interface{}); exist {
+		if client, exist := resource_access[keycloakClientId].(map[string]interface{}); exist {
 			if roles, exist := client["roles"].([]interface{}); exist {
 				userRoles = utils.ConvertSlice(roles)
 			}
@@ -108,9 +108,8 @@ func applyTimePolicy(times TimeInterval) bool {
 	if strings.Trim(times.StartTime, "") == "" && strings.Trim(times.ExpireTime, "") == "" {
 		return true
 	}
-
-	// If only the expire time is defined
 	if strings.Trim(times.StartTime, "") == "" && strings.Trim(times.ExpireTime, "") != "" {
+		// If only the expire time is defined
 
 		// Verify just if now time is before expire time
 		expireTime, err := time.Parse(timeLayout, times.ExpireTime)
@@ -124,9 +123,8 @@ func applyTimePolicy(times TimeInterval) bool {
 			return true
 		}
 	}
-
-	// If only the start time is specified
 	if strings.Trim(times.StartTime, "") != "" && strings.Trim(times.ExpireTime, "") == "" {
+		// If only the start time is specified
 
 		// Verify just if now time is after the start time
 		startTime, err := time.Parse(timeLayout, times.StartTime)
@@ -140,9 +138,8 @@ func applyTimePolicy(times TimeInterval) bool {
 			return true
 		}
 	}
-
-	// If the both startTime and endTime are defined
 	if strings.Trim(times.StartTime, "") != "" && strings.Trim(times.ExpireTime, "") != "" {
+		// If the both startTime and endTime are defined
 
 		startTime, err1 := time.Parse(timeLayout, times.StartTime)
 		expireTime, err2 := time.Parse(timeLayout, times.ExpireTime)
@@ -175,7 +172,7 @@ func applyTimePolicy(times TimeInterval) bool {
 				}
 
 			} else if repeatFrequency == "weekly" {
-
+				fmt.Println()
 			} else if repeatFrequency == "monthly" {
 
 				hour, min, sec := nowTime.Clock()
@@ -243,6 +240,25 @@ func Protect(policy Policy, opts PolicyOpts) func(*fiber.Ctx) error {
 			fmt.Println(err.Error())
 			return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": MessageExpiredOrInvalidToken, "error": ErrorExpiredOrInvalidToken})
 		}
+
+		// Kc.Gocloak.resou
+
+		// grantType := "password"
+		// userName := "toto"
+		// userPass := "7859"
+		// token, _ := Kc.Gocloak.GetToken(ctx.Context(), Kc.Realm,
+		// 	gocloak.TokenOptions{
+		// 		ClientID:     &Kc.ClientId,
+		// 		ClientSecret: &Kc.ClientSecret,
+		// 		GrantType:    &grantType,
+		// 		Username:     &userName,
+		// 		Password:     &userPass,
+		// 	})
+
+		// refresh := "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJlMDIyMjY3MS0zOTUyLTQyOWItOWI2MC1kY2EyZjAwNDAwNjIifQ.eyJleHAiOjE2OTUzMzAyNTAsImlhdCI6MTY5NTMyODQ1MCwianRpIjoiMWZjNDJjYTYtM2ExNy00YzA1LTkwOTEtYWRlZGI4OWFiM2ZhIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MTgwL3JlYWxtcy9leHAxIiwiYXVkIjoiaHR0cDovL2xvY2FsaG9zdDo4MTgwL3JlYWxtcy9leHAxIiwic3ViIjoiNzFjOTg1OTAtNmUyMC00NWNiLWI0OGMtNzIwMmU0OTRjY2UyIiwidHlwIjoiUmVmcmVzaCIsImF6cCI6ImdvLWJhY2tlbmQiLCJzZXNzaW9uX3N0YXRlIjoiMzg5ZjkzZmMtZjkxYy00NmIwLWExZGEtZjNkNGFlYTQzNzFiIiwic2NvcGUiOiJlbWFpbCBwcm9maWxlIiwic2lkIjoiMzg5ZjkzZmMtZjkxYy00NmIwLWExZGEtZjNkNGFlYTQzNzFiIn0.7WZEb6ruf-aUUaIkjCbcnBSj0QvhddKL_6DyqP0BLxw"
+		// token2, _ := Kc.Gocloak.RefreshToken(ctx.Context(), refresh, Kc.ClientId, Kc.ClientSecret, Kc.Realm)
+
+		// fmt.Println(token2.RefreshToken)
 
 		// Once the user token got, try to check it validity and get user information
 		_, tokenClaims, err := Kc.Gocloak.DecodeAccessToken(ctx.Context(), userToken, Kc.Realm)
