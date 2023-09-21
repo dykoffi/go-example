@@ -46,21 +46,22 @@ commands:
 
   build_and_deploy_docker_image_cmd:
     steps:
+      - run: docker login -u ${DOCKER_USER} -p ${PERSONAL_DOCKER_TOKEN}
+      - run: docker build -t ${DOCKER_USER}/${PROJECT_NAME} .
+      - run: docker push ${DOCKER_USER}/${PROJECT_NAME}
+  sonarqube_scan:
+    steps:
       - run: |
           docker run \
           -e SONAR_HOST_URL="${SONARQUBE_URL}" \
           -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=${SONARQUBE_PROJECT_KEY}" \
           -e SONAR_TOKEN="${SONARQUBE_PROJECT_SECRET}" \
-          -v "./repo:/usr/src" \
+          -v "~/project:/usr/src" \
           sonarsource/sonar-scanner-cli 
-      - run: docker login -u ${DOCKER_USER} -p ${PERSONAL_DOCKER_TOKEN}
-      - run: docker build -t ${DOCKER_USER}/${PROJECT_NAME} .
-      - run: docker push ${DOCKER_USER}/${PROJECT_NAME}
 
 jobs:
   test_and_build:
     executor: docker-executor
-    working_directory: ~/repo
     steps:
       - checkout
       - restore_cache_cmd
@@ -70,7 +71,7 @@ jobs:
       - run_tests_cmd
       - store_test_results:
           path: /tmp/test-reports
-      - run: go build -tags netgo -a -v -ldflags='-s' -o /tmp/artifacts/app .
+      - run: go build -tags netgo -a -v -ldflags='-s' -o app .
       - store_artifacts:
           path: /tmp/artifacts
       - persist_to_workspace:
@@ -85,6 +86,7 @@ jobs:
     steps:
       - attach_workspace:
           at: .
+      - sonarqube_scan
       - build_and_deploy_docker_image_cmd
 
   update_application:
