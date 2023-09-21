@@ -106,6 +106,7 @@ workflows:
             branches:
               only:
                 - main
+                - release
       - update_application:
           requires:
             - test_and_build
