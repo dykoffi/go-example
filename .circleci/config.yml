@@ -43,6 +43,13 @@ commands:
       - run: staticcheck ./... > /tmp/artifacts/performances.txt
       - run: go test -bench . ./tests > /tmp/artifacts/benchmarks.txt
       - run: gotestsum --junitfile /tmp/test-reports/unit-tests.xml -- ./tests
+      - run: |
+          docker run
+          -e SONAR_HOST_URL="${SONARQUBE_URL}"
+          -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=${SONARQUBE_PROJECT_KEY}"
+          -e SONAR_TOKEN=${SONARQUBE_PROJECT_SECRET}"
+          -v ".:/usr/src"
+          sonarsource/sonar-scanner-cli 
 
   build_and_deploy_docker_image_cmd:
     steps:

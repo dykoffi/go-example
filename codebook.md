@@ -70,3 +70,13 @@ Commands:
 
 Run 'docker compose COMMAND --help' for more information on a command.
 ```
+```go
+typef := 1
+```
+```output
+# command-line-arguments
+./main.go:5:1: syntax error: non-declaration statement outside function body
+```
+```go
+
+```

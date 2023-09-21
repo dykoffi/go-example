@@ -4,6 +4,7 @@ import (
 	"lab/exp1/src/controllers/home"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cache"
 )
 
 func New(app *fiber.App) {
@@ -13,9 +14,10 @@ func New(app *fiber.App) {
 	home.Routes(api)
 
 	// For UI services
-	// app.Static("/", "dist")
-	// app.Get("/*", func(c *fiber.Ctx) error {
-	// 	return c.SendFile("dist/index.html")
-	// })
+	app.Static("/", "dist")
+	app.Use(cache.New())
+	app.Get("/*", func(c *fiber.Ctx) error {
+		return c.SendFile("dist/index.html")
+	})
 
 }

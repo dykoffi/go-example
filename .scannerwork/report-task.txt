@@ -1,0 +1,6 @@
+projectKey=ciql
+serverUrl=https://system.sonarqube.eneci.net
+serverVersion=10.2.0.77647
+dashboardUrl=https://system.sonarqube.eneci.net/dashboard?id=ciql
+ceTaskId=AYqyqeN-D-9tTmam5dr5
+ceTaskUrl=https://system.sonarqube.eneci.net/api/ce/task?id=AYqyqeN-D-9tTmam5dr5
