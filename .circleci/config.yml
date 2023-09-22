@@ -57,7 +57,7 @@ commands:
           -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=${SONARQUBE_PROJECT_KEY}" \
           -e SONAR_TOKEN="${SONARQUBE_PROJECT_SECRET}" \
           -v "$(pwd):/usr/src" \
-          sonarsource/sonar-scanner-cli 
+          sonarsource/sonar-scanner-cli
 
 jobs:
   test_and_build:
@@ -81,12 +81,17 @@ jobs:
             - dockerfile
             - app
 
+  sonar:
+    executor: machine-executor
+    steps:
+      - checkout
+      - sonarqube_scan
+
   deploy_on_dockerhub:
     executor: machine-executor
     steps:
       - attach_workspace:
           at: .
-      - sonarqube_scan
       - build_and_deploy_docker_image_cmd
 
   update_application:
@@ -98,11 +103,14 @@ jobs:
 workflows:
   test_deploy_update:
     jobs:
+      - sonar:
+          context: Global
       - test_and_build:
           context: Global
       - deploy_on_dockerhub:
           requires:
             - test_and_build
+            - sonar
           context: Global
           filters:
             branches:
