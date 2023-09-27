@@ -20,34 +20,53 @@ commands:
   restore_cache_cmd:
     steps:
       - restore_cache:
-          keys:
-            - go-mod-v4-{{ checksum "go.sum" }}
+          key: &deps-cache go-mod-v4-{{ checksum "go.sum" }}
   save_cache_cmd:
     steps:
       - save_cache:
-          key: go-mod-v4-{{ checksum "go.sum" }}
+          key: *deps-cache
           paths:
-            - "/go/pkg/mod"
+            - "~/go/pkg/mod"
   install_deps_cmd:
     steps:
       - run: go mod download
+  install_trivy:
+    steps:
+      - run:
+          name: install trivy
+          command: |
+            sudo apt-get install wget apt-transport-https gnupg lsb-release
+            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+            echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+            sudo apt-get update
+            sudo apt-get install trivy
+  run_trivy_test_on_docker_image:
+    steps:
+      - run: mkdir -p /tmp/artifacts
+      - install_trivy
+      - run: trivy image ${DOCKER_USER}/${PROJECT_NAME} >> /tmp/artifacts/trivy-reports.txt
+      - store_artifacts:
+          path: /tmp/artifacts
   install_or_update_testers_and_checkers_cmd:
     steps:
-      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
-      - run: go install honnef.co/go/tools/cmd/staticcheck@latest
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest &
+      - run: go install honnef.co/go/tools/cmd/staticcheck@latest &
+      - run: wait
   run_tests_cmd:
     steps:
       - run: mkdir -p /tmp/test-reports
       - run: mkdir -p /tmp/artifacts
-      - run: govulncheck ./... > /tmp/artifacts/vulnerabilities.txt
-      - run: staticcheck ./... > /tmp/artifacts/performances.txt
-      - run: go test -bench . ./tests > /tmp/artifacts/benchmarks.txt
-      - run: gotestsum --junitfile /tmp/test-reports/unit-tests.xml -- ./tests
-
-  build_and_deploy_docker_image_cmd:
+      - run: govulncheck ./... > /tmp/artifacts/vulnerabilities.txt &
+      - run: staticcheck ./... > /tmp/artifacts/performances.txt &
+      - run: go test -bench . ./tests > /tmp/artifacts/benchmarks.txt &
+      - run: gotestsum --junitfile /tmp/test-reports/unit-tests.xml -- ./tests &
+      - run: wait
+  build_test_and_deploy_docker_image_cmd:
     steps:
-      - run: docker login -u ${DOCKER_USER} -p ${PERSONAL_DOCKER_TOKEN}
+      - install_trivy
       - run: docker build -t ${DOCKER_USER}/${PROJECT_NAME} .
+      - run_trivy_test_on_docker_image
+      - run: docker login -u ${DOCKER_USER} -p ${PERSONAL_DOCKER_TOKEN}
       - run: docker push ${DOCKER_USER}/${PROJECT_NAME}
   sonarqube_scan:
     steps:
@@ -92,7 +111,7 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - build_and_deploy_docker_image_cmd
+      - build_test_and_deploy_docker_image_cmd
 
   update_application:
     executor: machine-executor
