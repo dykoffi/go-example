@@ -35,11 +35,11 @@ commands:
       - run:
           name: install trivy
           command: |
-            sudo apt-get install wget apt-transport-https gnupg lsb-release
+            sudo apt install wget apt-transport-https gnupg lsb-release
             wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
             echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
-            sudo apt-get update
-            sudo apt-get install trivy
+            sudo apt update
+            sudo apt install trivy
   run_trivy_test_on_docker_image:
     steps:
       - run: mkdir -p /tmp/artifacts
@@ -99,13 +99,11 @@ jobs:
             - ./public
             - dockerfile
             - app
-
   sonar:
     executor: machine-executor
     steps:
       - checkout
       - sonarqube_scan
-
   deploy_on_dockerhub:
     executor: machine-executor
     steps:
