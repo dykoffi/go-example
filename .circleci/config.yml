@@ -62,9 +62,9 @@ jobs:
           command: |
             wget https://github.com/aquasecurity/trivy/releases/download/v0.45.1/trivy_0.45.1_Linux-64bit.deb
             sudo dpkg -i trivy_0.45.1_Linux-64bit.deb
-      - run: trivy config --format template --template "@security/junit.tpl" -o tmp/tests/config-report.xml .
-      - run: trivy fs --format template --template "@security/junit.tpl" -o tmp/tests/fs-report.xml .
-      - run: trivy rootfs --format template --template "@security/junit.tpl" -o tmp/tests/rootfs-report.xml .
+      - run: trivy config --format template --template "@security/junit.tpl" -o /tmp/tests/config-report.xml .
+      - run: trivy fs --format template --template "@security/junit.tpl" -o /tmp/tests/fs-report.xml .
+      - run: trivy rootfs --format template --template "@security/junit.tpl" -o /tmp/tests/rootfs-report.xml .
       - store_test_results:
           path: /tmp/tests
       
