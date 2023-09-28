@@ -2,8 +2,7 @@ package home
 
 import (
 	"fmt"
-	"lab/exp1/src/configs"
-	"lab/exp1/src/model"
+	"lab/exp1/src/db"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -28,8 +27,21 @@ func getDocs(c *fiber.Ctx) error {
 	return c.SendFile("public/rapidoc.html")
 }
 
+// addUser godoc
+//
+//		@Summary	Add user in the system
+//		@Description	Add the user that you want with all information describe in the minefields
+//		@Tags		home
+//		@Produce	json
+//		@Success	200	{object}	HomeRes
+//	 @Param  range formData string true "File to upload"
+//	 @Param  name formData string true "For user name"
+//	 @Param  age formData number true "For user age"
+//	 @Param  file formData file true "File to upload"
+//		@Router		/user [post]
 func addUser(c *fiber.Ctx) error {
-	db := configs.Db().Create(&model.User{Mail: "koffiedy@gmail.com", Age: 16})
+	// fmt.Println(c.FormValue())
+	db := db.Db().Create(&db.User{Mail: "koffiedy@gmail.com", Age: 16})
 
 	if err := db.Error; err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(map[string]string{"err": err.Error()})
@@ -39,7 +51,7 @@ func addUser(c *fiber.Ctx) error {
 }
 
 func listUsers(ctx *fiber.Ctx) error {
-	listUser := configs.Db().First(&model.User{})
+	listUser := db.Db().First(&db.User{})
 
 	fmt.Println(listUser)
 
@@ -53,13 +65,4 @@ func listUsers(ctx *fiber.Ctx) error {
 
 func createCookie(ctx *fiber.Ctx) error {
 	return ctx.JSON(map[string]string{"message": "Cookie creation"})
-}
-
-func getCookie(ctx *fiber.Ctx) error {
-	return ctx.JSON(map[string]string{"message": ctx.Cookies("test")})
-}
-
-func clearCookie(ctx *fiber.Ctx) error {
-	ctx.ClearCookie()
-	return ctx.JSON(map[string]string{"message": "Cookie cleaning"})
 }

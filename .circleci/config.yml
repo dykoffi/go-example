@@ -16,60 +16,59 @@ executors:
       image: ubuntu-2204:current
       docker_layer_caching: true
 
-commands:
-  restore_cache_cmd:
+jobs:
+  static_test:
+    executor: docker-executor
     steps:
+      - checkout
+
+      # Caching and deps installation
       - restore_cache:
           key: &deps-cache go-mod-v4-{{ checksum "go.sum" }}
-  save_cache_cmd:
-    steps:
+      - run: go mod download
       - save_cache:
           key: *deps-cache
           paths:
             - "~/go/pkg/mod"
-  install_deps_cmd:
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run: go install honnef.co/go/tools/cmd/staticcheck@latest
+
+      # Run test
+      - run: mkdir -p /tmp/test-reports
+      - run: mkdir -p /tmp/artifacts
+      - run: govulncheck ./... > /tmp/artifacts/vulnerabilities.txt
+      - run: staticcheck ./... > /tmp/artifacts/performances.txt
+      - run: go test -bench . ./tests > /tmp/artifacts/benchmarks.txt
+      - run: gotestsum --junitfile /tmp/test-reports/unit-tests.xml -- ./tests
+
+      # Build Application
+      # - run: go build -tags netgo -a -v -ldflags='-s' -o app .
+
+      # Store tests results and artifacts
+      - store_test_results:
+          path: /tmp/test-reports
+      - store_artifacts:
+          path: /tmp/artifacts
+
+  sonar_trivy_test:
+    executor: machine-executor
     steps:
-      - run: go mod download
-  install_trivy:
-    steps:
+      - checkout
+
+      # Run trivy test
+      - run: mkdir -p /tmp/tests
       - run:
           name: install trivy
           command: |
-            sudo apt install wget apt-transport-https gnupg lsb-release
-            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-            echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
-            sudo apt update
-            sudo apt install trivy
-  run_trivy_test_on_docker_image:
-    steps:
-      - run: mkdir -p /tmp/artifacts
-      - install_trivy
-      - run: trivy image ${DOCKER_USER}/${PROJECT_NAME} >> /tmp/artifacts/trivy-reports.txt
-      - store_artifacts:
-          path: /tmp/artifacts
-  install_or_update_testers_and_checkers_cmd:
-    steps:
-      - run: go install golang.org/x/vuln/cmd/govulncheck@latest &
-      - run: go install honnef.co/go/tools/cmd/staticcheck@latest &
-      - run: wait
-  run_tests_cmd:
-    steps:
-      - run: mkdir -p /tmp/test-reports
-      - run: mkdir -p /tmp/artifacts
-      - run: govulncheck ./... > /tmp/artifacts/vulnerabilities.txt &
-      - run: staticcheck ./... > /tmp/artifacts/performances.txt &
-      - run: go test -bench . ./tests > /tmp/artifacts/benchmarks.txt &
-      - run: gotestsum --junitfile /tmp/test-reports/unit-tests.xml -- ./tests &
-      - run: wait
-  build_test_and_deploy_docker_image_cmd:
-    steps:
-      - install_trivy
-      - run: docker build -t ${DOCKER_USER}/${PROJECT_NAME} .
-      - run_trivy_test_on_docker_image
-      - run: docker login -u ${DOCKER_USER} -p ${PERSONAL_DOCKER_TOKEN}
-      - run: docker push ${DOCKER_USER}/${PROJECT_NAME}
-  sonarqube_scan:
-    steps:
+            wget https://github.com/aquasecurity/trivy/releases/download/v0.45.1/trivy_0.45.1_Linux-64bit.deb
+            sudo dpkg -i trivy_0.45.1_Linux-64bit.deb
+      - run: trivy config --format template --template "@security/junit.tpl" -o tmp/tests/config-report.xml .
+      - run: trivy fs --format template --template "@security/junit.tpl" -o tmp/tests/fs-report.xml .
+      - run: trivy rootfs --format template --template "@security/junit.tpl" -o tmp/tests/rootfs-report.xml .
+      - store_test_results:
+          path: /tmp/tests
+      
+      # Run sonarQube test
       - run: |
           docker run \
           -e SONAR_HOST_URL="${SONARQUBE_URL}" \
@@ -78,65 +77,18 @@ commands:
           -v "$(pwd):/usr/src" \
           sonarsource/sonar-scanner-cli
 
-jobs:
-  test_and_build:
+  test:
     executor: docker-executor
     steps:
-      - checkout
-      - restore_cache_cmd
-      - install_deps_cmd
-      - save_cache_cmd
-      - install_or_update_testers_and_checkers_cmd
-      - run_tests_cmd
-      - store_test_results:
-          path: /tmp/test-reports
-      - run: go build -tags netgo -a -v -ldflags='-s' -o app .
-      - store_artifacts:
-          path: /tmp/artifacts
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./public
-            - dockerfile
-            - app
-  sonar:
-    executor: machine-executor
-    steps:
-      - checkout
-      - sonarqube_scan
-  deploy_on_dockerhub:
-    executor: machine-executor
-    steps:
-      - attach_workspace:
-          at: .
-      - build_test_and_deploy_docker_image_cmd
-
-  update_application:
-    executor: machine-executor
-    steps:
-      - run: ssh
-      - run: wget "${NOTIFICATION_URL}?version=${VERSION}&app=${APP}"
+      - run: echo "All is working"
 
 workflows:
   test_deploy_update:
     jobs:
-      - sonar:
+      - sonar_trivy_test
+      - static_test:
           context: Global
-      - test_and_build:
-          context: Global
-      - deploy_on_dockerhub:
+      - test:
           requires:
-            - test_and_build
-            - sonar
-          context: Global
-          filters:
-            branches:
-              only:
-                - main
-                - release
-      - update_application:
-          requires:
-            - test_and_build
-          filters:
-            branches:
-              only: main
+            - static_test
+            - sonar_trivy_test

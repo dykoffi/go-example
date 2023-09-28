@@ -1,4 +1,4 @@
-package model
+package db
 
 import (
 	"gorm.io/gorm"
@@ -6,7 +6,6 @@ import (
 
 type User struct {
 	gorm.Model
-	// Name string `gorm:""`
 	Mail string `gorm:"<-:false"`
 	Name string `gorm:""`
 	Age  uint64 `gorm:"check:age > 15"`

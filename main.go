@@ -4,9 +4,8 @@ package main
 
 import (
 	"fmt"
-	"lab/exp1/src/configs"
 	"lab/exp1/src/controllers"
-	"lab/exp1/src/model"
+	"lab/exp1/src/db"
 	"log"
 	"os"
 
@@ -38,8 +37,10 @@ func main() {
 	app.Use(favicon.New(favicon.Config{File: "./public/favicon.ico"}))
 	app.Use(logger.New())
 
-	configs.Db().AutoMigrate(&model.Books{}, &model.User{})
+	// Database migration
+	db.Db().AutoMigrate(&db.Books{}, &db.User{})
 
+	// Controller initialisation
 	controllers.New(app)
 
 	port := os.Getenv("PORT")

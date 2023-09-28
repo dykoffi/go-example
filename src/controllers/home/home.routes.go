@@ -9,11 +9,9 @@ import (
 func Routes(api fiber.Router) {
 	api.Get("/", getApiInfo)
 	api.Get("/docs", getDocs)
-	api.Get("/addUser", addUser)
+	api.Post("/user", addUser)
 	api.Get("/getUser", listUsers)
 
 	//cookies
 	api.Get("/testPermission", auth.Protect(auth.HasRoleCreateCookies, auth.PolicyOpts{Logic: true}), createCookie)
-	api.Get("/getCookie", getCookie)
-	api.Get("/delCookie", clearCookie)
 }
