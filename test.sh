@@ -1,0 +1,4 @@
+CIRCLE_USERNAME=EDY
+curl -X POST -H "Content-Type: application/json" -d "{
+  \"text\": \"_________________________\n\n🔒🔒🔒 \`Test *${CIRCLE_USERNAME}* passed\` 🔒🔒🔒 \n\nCommited by : *Edy KOFFI*\n<https://app.circleci.com/pipelines/github/data354/motower_cluster/1/workflows/0e300205-8192-42e2-8d12-2e4989832558|CircleCI link >\n<https://github.com/data354/motower_frontend|Github link>\n\nIf anyone want to add issues click on <https://github.com/data354/ds54/issues|Github Issues>\"
+}" "https://chat.googleapis.com/v1/spaces/AAAAjkZVmEQ/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=zUOYeurdfRwCGHvAxn5Uek7PGEtqiwc52WZjOWGt4GY"
