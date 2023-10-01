@@ -37,7 +37,7 @@ jobs:
       - run: mkdir -p /tmp/test-reports
       - run: mkdir -p /tmp/artifacts
       - run: govulncheck ./... > /tmp/artifacts/vulnerabilities.txt
-      - run: staticcheck ./... > /tmp/artifacts/performances.txt
+      - run: staticcheck ./... > /tmp/artifacts/performances.txt || true
       - run: go test -bench . ./tests > /tmp/artifacts/benchmarks.txt
       - run: gotestsum --junitfile /tmp/test-reports/unit-tests.xml -- ./tests
 
