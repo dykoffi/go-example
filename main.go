@@ -25,6 +25,7 @@ import (
 // @contact.url														https://linkedin.com/in/edy-koffi
 // @license.name													Apache 2.0
 // @license.url														http://www.apache.org/licenses/LICENSE-2.0.html
+// @securityDefinitions.basic							BasicAuth
 // @securityDefinitions.apikey.name 			ApiKeyAuth
 // @securityDefinitions.apikey.in					header
 func main() {

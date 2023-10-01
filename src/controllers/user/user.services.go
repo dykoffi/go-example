@@ -27,13 +27,7 @@ func loginUser(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	userInfo, err := auth.Kc.Gocloak.Login(
-		ctx.Context(),
-		auth.Kc.ClientId,
-		auth.Kc.ClientSecret,
-		auth.Kc.Realm,
-		credentials.Mail,
-		credentials.Password)
+	userInfo, err := auth.Login(ctx, credentials.Mail, credentials.Password)
 
 	if err != nil {
 		return ctx.Status(401).JSON(map[string]string{"error": "InvalidUserError", "message": err.Error()})
